@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 from model import GCN, normalize_adj, train_model, accuracy
+from scorers import random_scorer
 
 
 def run_loop(env, scorer_fn, budget, hidden_dim=16, epochs=100, lr=0.01, seed=0):
@@ -34,15 +35,25 @@ def run_loop(env, scorer_fn, budget, hidden_dim=16, epochs=100, lr=0.01, seed=0)
         if not candidates:
             break
 
-        scores = scorer_fn(env, candidates, model)
+        scores = scorer_fn(env, candidates, model, X, A_norm)
         best = candidates[int(np.argmax(scores))]
         env.reveal(best)
 
     return {"accuracy": acc_curve, "n_revealed": n_revealed_curve}
 
 
-def random_scorer(env, candidates, model=None):
-    return env.rng.random(len(candidates))
+def run_multi_seed(y, A_true, X, scorer_fn, budget, seeds, observe_frac=0.1,
+                    hidden_dim=16, epochs=100, lr=0.01):
+    """Run the loop once per seed (env init + model init vary, graph is fixed)
+    and stack the resulting accuracy curves for averaging."""
+    from env import GraphEnv
+
+    curves = []
+    for seed in seeds:
+        env = GraphEnv(y, A_true, X, observe_frac=observe_frac, seed=seed)
+        result = run_loop(env, scorer_fn, budget, hidden_dim=hidden_dim, epochs=epochs, lr=lr, seed=seed)
+        curves.append(result["accuracy"])
+    return np.array(curves)
 
 
 if __name__ == "__main__":
