@@ -4,7 +4,7 @@ import numpy as np
 class GraphEnv:
     """Hides most true edges; reveals one at a time via an oracle, at a cost."""
 
-    def __init__(self, y, A_true, X, observe_frac=0.1, train_frac=0.4, val_frac=0.2, seed=0):
+    def __init__(self, y, A_true, X, observe_frac=0.3, train_frac=0.4, val_frac=0.2, seed=0):
         self.y = y
         self.A_true = A_true
         self.X = X
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     from data import make_csbm
 
     y, A_true, X = make_csbm()
-    env = GraphEnv(y, A_true, X, observe_frac=0.1, seed=0)
+    env = GraphEnv(y, A_true, X, observe_frac=0.3, seed=0)
 
     # 1. splits are disjoint and cover every node
     all_idx = np.concatenate([env.train_idx, env.val_idx, env.test_idx])

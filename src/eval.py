@@ -7,6 +7,18 @@ def auc(accuracy_curve):
     return float(np.trapz(accuracy_curve, x))
 
 
+def normalized_advantage(final_acc, observed_acc, full_acc, eps=1e-6):
+    """Fraction of the achievable headroom (full-graph accuracy minus what the model
+    already had before spending any budget) that a strategy's final accuracy captured.
+    1.0 = reached full-graph accuracy using only the budget; 0.0 = no progress; can go
+    negative if the strategy's picks actively hurt. NaN when there's ~no headroom to
+    measure against (observed_acc already ~= full_acc)."""
+    denom = full_acc - observed_acc
+    if denom < eps:
+        return float("nan")
+    return (final_acc - observed_acc) / denom
+
+
 def mean_and_se(curves):
     """curves: array of shape (n_seeds, n_steps). Returns (mean, standard_error) per step."""
     mean = curves.mean(axis=0)

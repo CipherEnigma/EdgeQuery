@@ -21,13 +21,18 @@ def structural_scorer(env, candidates, model=None, X=None, A_norm=None):
     return np.array([float(np.dot(A_obs[i], A_obs[j])) for (i, j) in candidates])
 
 
-def oracle_voi_scorer(env, candidates, model, X, A_norm, n_sample=15, epochs=25, hidden_dim=16, lr=0.01, seed=0):
-    """Gold-standard, expensive scorer: for a random sample of candidates, tentatively
-    add the edge, retrain from scratch, and score by the resulting validation accuracy.
-    Unsampled candidates get the worst possible score so they're never picked."""
+def oracle_voi_scorer(env, candidates, model, X, A_norm, n_sample=40, epochs=25, hidden_dim=16, lr=0.01, seed=0):
+    """Gold-standard, expensive scorer: tentatively add a candidate edge, retrain from
+    scratch, and score by the resulting validation accuracy. Only n_sample candidates get
+    this expensive treatment each step -- a random subset would almost never contain a real
+    edge (real edges are ~3.7% of ~4000 candidates), so instead we shortlist the n_sample
+    candidates with the highest structural_scorer (shared-neighbour) score first, then spend
+    the retrain budget on that shortlist. Un-shortlisted candidates get -inf so they're never
+    picked over an evaluated one."""
     n_candidates = len(candidates)
     if n_candidates > n_sample:
-        sample_pos = env.rng.choice(n_candidates, size=n_sample, replace=False)
+        structural_scores = structural_scorer(env, candidates)
+        sample_pos = np.argsort(structural_scores)[::-1][:n_sample]
     else:
         sample_pos = np.arange(n_candidates)
 
