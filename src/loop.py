@@ -39,7 +39,9 @@ def run_loop(env, scorer_fn, budget, hidden_dim=16, epochs=100, lr=0.01, seed=0)
             break
 
         scores = scorer_fn(env, candidates, model, X, A_norm)
-        best = candidates[int(np.argmax(scores))]
+        best_score = scores.max()
+        tied = np.flatnonzero(scores == best_score)
+        best = candidates[int(env.rng.choice(tied))]
         env.reveal(best)
 
     return {"accuracy": acc_curve, "n_revealed": n_revealed_curve, "n_real_edges": n_real_edges_curve}
@@ -64,7 +66,7 @@ def full_graph_accuracy(env, A_true, hidden_dim=16, epochs=100, lr=0.01, seed=0)
     return accuracy(model, X_t, A_norm, y_t, test_idx)
 
 
-def run_multi_seed(y, A_true, X, scorer_fn, budget, seeds, observe_frac=0.3,
+def run_multi_seed(y, A_true, X, scorer_fn, budget, seeds, observe_frac=0.15,
                     hidden_dim=16, epochs=100, lr=0.01):
     """Run the loop once per seed (env init + model init vary, graph is fixed)
     and stack the resulting accuracy curves for averaging."""
@@ -83,7 +85,7 @@ if __name__ == "__main__":
     from env import GraphEnv
 
     y, A_true, X = make_csbm()
-    env = GraphEnv(y, A_true, X, observe_frac=0.3, seed=0)
+    env = GraphEnv(y, A_true, X, observe_frac=0.15, seed=0)
 
     result = run_loop(env, random_scorer, budget=10, epochs=100, seed=0)
 

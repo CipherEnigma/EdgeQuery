@@ -10,7 +10,7 @@ import numpy as np
 # feat_signal: this is basically used to determine that there are faint signals in the features and can carry some weak correleation, not enough by itself.
 # if we use zero signal--> then the edge would be unrealisitic,
 
-def make_csbm(n=90, k=3, p_in=0.11, p_out=0.005, feat_dim=12, feat_signal=0.10, seed=0):
+def make_csbm(n=90, k=3, p_in=0.13, p_out=0.006, feat_dim=12, feat_signal=0.10, seed=0):
     rng = np.random.default_rng(seed)
 
     base = n // k

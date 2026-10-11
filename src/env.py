@@ -4,14 +4,15 @@ import numpy as np
 class GraphEnv:
     """Hides most true edges; reveals one at a time via an oracle, at a cost."""
 
-    def __init__(self, y, A_true, X, observe_frac=0.3, train_frac=0.4, val_frac=0.2, seed=0):
+    def __init__(self, y, A_true, X, observe_frac=0.15, train_frac=0.4, val_frac=0.2, seed=0,
+                 anchors_per_class=None):
         self.y = y
         self.A_true = A_true
         self.X = X
         self.n = A_true.shape[0]
         self.rng = np.random.default_rng(seed)
 
-        self.train_idx, self.val_idx, self.test_idx = self._split_nodes(train_frac, val_frac)
+        self.train_idx, self.val_idx, self.test_idx = self._split_nodes(train_frac, val_frac, anchors_per_class)
 
         self.true_edges = self._all_true_edges()
         self.revealed = set()
@@ -19,14 +20,24 @@ class GraphEnv:
 
         self._init_observed_edges(observe_frac)
 
-    def _split_nodes(self, train_frac, val_frac):
+    def _split_nodes(self, train_frac, val_frac, anchors_per_class=None):
+        """anchors_per_class=None: first train_frac of a random permutation is labelled.
+        anchors_per_class=k: only k labelled nodes per class, so most nodes sit far from
+        any label and edges that bridge them toward an anchor carry most of the value."""
         idx = self.rng.permutation(self.n)
-        n_train = int(self.n * train_frac)
         n_val = int(self.n * val_frac)
-        train_idx = idx[:n_train]
-        val_idx = idx[n_train:n_train + n_val]
-        test_idx = idx[n_train + n_val:]
-        return train_idx, val_idx, test_idx
+        if anchors_per_class is None:
+            n_train = int(self.n * train_frac)
+            train_idx = idx[:n_train]
+            rest = idx[n_train:]
+        else:
+            train = []
+            for c in range(int(self.y.max()) + 1):
+                train.extend([i for i in idx if self.y[i] == c][:anchors_per_class])
+            train_idx = np.array(train)
+            taken = set(train)
+            rest = np.array([i for i in idx if i not in taken])
+        return train_idx, rest[:n_val], rest[n_val:]
 
     def _all_true_edges(self):
         iu = np.triu_indices(self.n, k=1)
@@ -34,6 +45,12 @@ class GraphEnv:
         return list(zip(iu[0][mask].tolist(), iu[1][mask].tolist()))
 
     def _init_observed_edges(self, observe_frac):
+        """Random selection of observe_frac * len(true_edges) edges to reveal upfront.
+        (A coverage-first variant was tried -- spreading initial edges across distinct
+        nodes to reduce isolated-node count -- but it was reverted: it directly destroys
+        the overlapping-neighbourhood structure that structural_scorer's shared-neighbour
+        signal depends on, which was our one consistently validated result. Plain random
+        selection leaves more nodes isolated at step 0, but preserves that signal.)"""
         n_init = int(len(self.true_edges) * observe_frac)
         chosen = self.rng.choice(len(self.true_edges), size=n_init, replace=False)
         for k in chosen:
@@ -71,7 +88,7 @@ if __name__ == "__main__":
     from data import make_csbm
 
     y, A_true, X = make_csbm()
-    env = GraphEnv(y, A_true, X, observe_frac=0.3, seed=0)
+    env = GraphEnv(y, A_true, X, observe_frac=0.15, seed=0)
 
     # 1. splits are disjoint and cover every node
     all_idx = np.concatenate([env.train_idx, env.val_idx, env.test_idx])
