@@ -20,6 +20,7 @@ from scipy import stats
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from data import make_csbm
+# pyrefly: ignore [missing-import]
 from env import GraphEnv
 from scorers import random_scorer, structural_scorer
 
