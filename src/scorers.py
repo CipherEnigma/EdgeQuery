@@ -53,6 +53,59 @@ def jaccard_scorer(env, candidates, model=None, X=None, A_norm=None):
     return scores
 
 
+def label_agreement_scorer(env, candidates, model=None, X=None, A_norm=None):
+    """ALPINE-style max-prob (Chen et al. 2020), with the link probability derived from
+    the node-classification side instead of a network embedding. Under homophily,
+    P(link) is increasing in P(same class), so ranking by P(same class) ranks by P(link)
+    without needing p_in/p_out. P(same class) = sum_c q_i(c) q_j(c), where q is one-hot
+    for labelled (train) nodes and uniform otherwise -- only train labels are used, never
+    val/test. Ties (e.g. all unlabelled pairs at 1/k) are broken by shared-neighbour
+    count, so off the labelled pairs this falls back to structural_scorer.
+
+    v1 of this scorer (still spending nearly the whole budget confirming edges between
+    two ALREADY-labelled nodes -- checked empirically: 199/200 queries at budget=200) --
+    those pairs score highest (both one-hot, dot product = 1) but are close to useless:
+    both endpoints' classes are already known from the labels directly, so a new edge
+    between them can't inform any unlabelled node it doesn't already touch. Both-labelled
+    pairs are now excluded so the budget is forced toward pairs that can actually carry
+    label information to someone whose class is still in question."""
+    A_obs = env.observed_graph()
+    n = A_obs.shape[0]
+    k = int(env.y.max()) + 1
+    train_set = set(env.train_idx.tolist())
+    q = np.full((n, k), 1.0 / k)
+    q[env.train_idx] = 0.0
+    q[env.train_idx, env.y[env.train_idx]] = 1.0
+    I, J = np.array(candidates).T
+    same_class = (q[I] * q[J]).sum(axis=1)
+    shared = (A_obs[I] * A_obs[J]).sum(axis=1)
+    both_labelled = np.array([(i in train_set) and (j in train_set) for i, j in candidates])
+    same_class = np.where(both_labelled, 0.0, same_class)
+    return same_class * 1000.0 + shared
+
+
+def max_degree_scorer(env, candidates, model=None, X=None, A_norm=None):
+    """ALPINE's max-deg (Chen et al. 2020): u(i, j) = observed degree of i + of j."""
+    deg = env.observed_graph().sum(axis=1)
+    I, J = np.array(candidates).T
+    return deg[I] + deg[J]
+
+
+def pagerank_scorer(env, candidates, model=None, X=None, A_norm=None, damping=0.85, iters=100):
+    """ALPINE's page-rank: u(i, j) = PR_i + PR_j on the observed graph (unknown pairs
+    treated as disconnected, as in the paper). Isolated nodes teleport uniformly."""
+    A = env.observed_graph().astype(np.float64)
+    n = A.shape[0]
+    deg = A.sum(axis=1)
+    dangling = deg == 0
+    P = np.divide(A, deg[:, None], out=np.zeros_like(A), where=~dangling[:, None])
+    pr = np.full(n, 1.0 / n)
+    for _ in range(iters):
+        pr = damping * (pr @ P + pr[dangling].sum() / n) + (1 - damping) / n
+    I, J = np.array(candidates).T
+    return pr[I] + pr[J]
+
+
 def entropy_drop_scorer(env, candidates, model, X, A_norm):
     """Cheap, smooth alternative to oracle_voi_scorer: for every candidate, do a single
     forward pass (no retraining, frozen weights) with the edge tentatively added, and
