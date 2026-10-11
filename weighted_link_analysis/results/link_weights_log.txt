@@ -1,0 +1,58 @@
+graph={'n': 90, 'k': 3, 'p_in': 0.25, 'p_out': 0.02, 'w_in': 0.8, 'w_out': 0.2}, seeds=10, budget=100
+   no_labels         random: edges@100=   7.7  acc@100=nan
+   no_labels     structural: edges@100=  16.4  acc@100=nan
+   no_labels   w_structural: edges@100=  18.7  acc@100=nan
+   no_labels    adamic_adar: edges@100=  17.9  acc@100=nan
+   no_labels  w_adamic_adar: edges@100=  18.8  acc@100=nan
+   no_labels      labelprop: edges@100=  16.4  acc@100=nan
+   no_labels    w_labelprop: edges@100=  16.4  acc@100=nan
+   sparse_15         random: edges@100=   7.7  acc@100=0.571
+   sparse_15     structural: edges@100=  16.4  acc@100=0.525
+   sparse_15   w_structural: edges@100=  18.7  acc@100=0.522
+   sparse_15    adamic_adar: edges@100=  17.9  acc@100=0.532
+   sparse_15  w_adamic_adar: edges@100=  18.8  acc@100=0.531
+   sparse_15      labelprop: edges@100=  18.1  acc@100=0.521
+   sparse_15    w_labelprop: edges@100=  18.1  acc@100=0.521
+   medium_40         random: edges@100=   7.7  acc@100=0.694
+   medium_40     structural: edges@100=  16.4  acc@100=0.687
+   medium_40   w_structural: edges@100=  18.7  acc@100=0.696
+   medium_40    adamic_adar: edges@100=  17.9  acc@100=0.698
+   medium_40  w_adamic_adar: edges@100=  18.8  acc@100=0.696
+   medium_40      labelprop: edges@100=  18.8  acc@100=0.670
+   medium_40    w_labelprop: edges@100=  18.8  acc@100=0.670
+    dense_80         random: edges@100=   7.7  acc@100=0.667
+    dense_80     structural: edges@100=  16.4  acc@100=0.667
+    dense_80   w_structural: edges@100=  18.7  acc@100=0.678
+    dense_80    adamic_adar: edges@100=  17.9  acc@100=0.678
+    dense_80  w_adamic_adar: edges@100=  18.8  acc@100=0.672
+    dense_80      labelprop: edges@100=  19.5  acc@100=0.628
+    dense_80    w_labelprop: edges@100=  19.5  acc@100=0.628
+
+=== edges: weighted minus binary, mean +- sd over 10 paired seeds ===
+  scenario         pair               b=10               b=25               b=50              b=100
+ no_labels   structural   +0.10+- 1.37      +0.50+- 1.90      +2.70+- 2.21*     +2.30+- 3.20*  
+ no_labels  adamic_adar   +0.80+- 0.63*     +1.90+- 1.10*     +2.80+- 1.99*     +0.90+- 2.02   
+ no_labels    labelprop   +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00   
+ sparse_15   structural   +0.10+- 1.37      +0.50+- 1.90      +2.70+- 2.21*     +2.30+- 3.20*  
+ sparse_15  adamic_adar   +0.80+- 0.63*     +1.90+- 1.10*     +2.80+- 1.99*     +0.90+- 2.02   
+ sparse_15    labelprop   +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.94   
+ medium_40   structural   +0.10+- 1.37      +0.50+- 1.90      +2.70+- 2.21*     +2.30+- 3.20*  
+ medium_40  adamic_adar   +0.80+- 0.63*     +1.90+- 1.10*     +2.80+- 1.99*     +0.90+- 2.02   
+ medium_40    labelprop   +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00   
+  dense_80   structural   +0.10+- 1.37      +0.50+- 1.90      +2.70+- 2.21*     +2.30+- 3.20*  
+  dense_80  adamic_adar   +0.80+- 0.63*     +1.90+- 1.10*     +2.80+- 1.99*     +0.90+- 2.02   
+  dense_80    labelprop   +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00   
+
+=== acc: weighted minus binary, mean +- sd over 10 paired seeds ===
+  scenario         pair               b=10               b=25               b=50              b=100
+ sparse_15   structural   +0.00+- 0.01      +0.01+- 0.01      +0.00+- 0.01      -0.00+- 0.02   
+ sparse_15  adamic_adar   +0.00+- 0.01      +0.00+- 0.00      +0.00+- 0.01      -0.00+- 0.03   
+ sparse_15    labelprop   +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00   
+ medium_40   structural   -0.00+- 0.01      -0.00+- 0.01      +0.00+- 0.01      +0.01+- 0.03   
+ medium_40  adamic_adar   -0.00+- 0.01      +0.01+- 0.01      +0.00+- 0.01      -0.00+- 0.01   
+ medium_40    labelprop   +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00   
+  dense_80   structural   +0.00+- 0.03      +0.00+- 0.03      +0.01+- 0.02      +0.01+- 0.02   
+  dense_80  adamic_adar   -0.01+- 0.02      +0.02+- 0.03      +0.00+- 0.00      -0.01+- 0.04   
+  dense_80    labelprop   +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00      +0.00+- 0.00   
+
+* = paired t-test p < 0.05
